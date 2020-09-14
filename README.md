@@ -1,3 +1,8 @@
+# Fork updates
+- Using [Grandes Ecoles - QPUC video](https://www.youtube.com/watch?v=XoKYVdbwOwM&ab_channel=QuestionspourunChampion) as test
+- Increasing `max_sampling_size` to avoid having too small chunks
+- Run `autosub/__init__.py test.mp4 --src-language fr --dst-language fr --format srt`
+
 # Autosub <a href="https://pypi.python.org/pypi/autosub"><img src="https://img.shields.io/pypi/v/autosub.svg"></img></a>
   
 ### Auto-generated subtitles for any video

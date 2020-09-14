@@ -25,10 +25,10 @@ except ImportError:
 from googleapiclient.discovery import build
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
-from autosub.constants import (
+from constants import (
     LANGUAGE_CODES, GOOGLE_SPEECH_API_KEY, GOOGLE_SPEECH_API_URL,
 )
-from autosub.formatters import FORMATTERS
+from formatters import FORMATTERS
 
 DEFAULT_SUBTITLE_FORMAT = 'srt'
 DEFAULT_CONCURRENCY = 10
@@ -191,9 +191,10 @@ def extract_audio(filename, channels=1, rate=16000):
     return temp.name, rate
 
 
-def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_region_size=6): # pylint: disable=too-many-locals
+def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_region_size=15): # pylint: disable=too-many-locals
     """
     Perform voice activity detection on a given audio file.
+    TODO: Changes here to find smarter regions!
     """
     reader = wave.open(filename)
     sample_width = reader.getsampwidth()
@@ -216,7 +217,7 @@ def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_reg
     region_start = None
 
     for energy in energies:
-        is_silence = energy <= threshold
+        is_silence = False  # energy <= threshold
         max_exceeded = region_start and elapsed_time - region_start >= max_region_size
 
         if (max_exceeded or is_silence) and region_start:
@@ -227,6 +228,8 @@ def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_reg
         elif (not region_start) and (not is_silence):
             region_start = elapsed_time
         elapsed_time += chunk_duration
+    if region_start:
+        regions.append((region_start, elapsed_time))
     return regions
 
 
@@ -267,6 +270,7 @@ def generate_subtitles( # pylint: disable=too-many-locals,too-many-arguments
             pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
 
             for i, transcript in enumerate(pool.imap(recognizer, extracted_regions)):
+                print(transcript)
                 transcripts.append(transcript)
                 pbar.update(i)
             pbar.finish()
